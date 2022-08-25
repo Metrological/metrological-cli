@@ -56,6 +56,46 @@ const tar = (src, dest) => {
   })
 }
 
+const requiredMetaData = (metadata) => {
+  spinner.start('Checking required fields in metadata.json')
+
+  const schema = {
+    splashImage: value => typeof value === 'string' || value instanceof String,
+    icon: value => typeof value === 'string' || value instanceof String
+  };
+  const requireDate = { // Dates when required metafields fail upload
+    splashImage: "2022-11-30",
+    icon: "2022-11-30"
+  }
+
+  const validate = (object, schema) => Object
+    .keys(schema)
+    .filter(key => !schema[key](object[key]))
+    .map(key => ({
+      key: key,
+      msg: `${key} is a required field`,
+      date: new Date(requireDate[key])
+    }));
+
+  const errors = validate(metadata, schema);
+  
+  if (errors.length > 0) {
+    spinner.fail()
+    let allowUpload = true
+    errors.forEach((element) => {
+      if (element.date < new Date()) {
+        allowUpload = false
+        console.warn(`    ** Metadata: ${element.msg}!!!`)
+      } else
+        console.warn(`    ** Metadata: ${element.msg}. After ${element.date.toLocaleString()} you will not be able to upload.`)
+    })
+    return (!allowUpload) ? process.exit(1) : metadata;
+  } else {
+    spinner.succeed()
+    return metadata
+  }
+}
+
 module.exports = () => {
   // set environment to production (to enable minify)
   process.env.NODE_ENV = 'production'
@@ -73,6 +113,7 @@ module.exports = () => {
         packageData = metadata
         return metadata
       }),
+    metadata => requiredMetaData(metadata),
     metadata => buildHelpers.bundleEs6App(tmpDir, metadata),
     metadata => buildHelpers.bundleEs5App(tmpDir, metadata),
     () => buildHelpers.ensureFolderExists(releasesDir),

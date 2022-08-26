@@ -20,6 +20,7 @@
 const shell = require('shelljs')
 const fs = require('fs')
 const execa = require('execa')
+const os = require('os')
 const path = require('path')
 const chalk = require('chalk')
 const esbuild = require('esbuild')
@@ -243,6 +244,25 @@ const ensureLightningApp = () => {
   })
 }
 
+const nodeModuleInstall = () => {
+  spinner.start(`Installing app dependencies`)
+  
+  var npmCmd = os.platform().startsWith('win') ? 'npm.cmd' : 'npm'
+
+  return execa(npmCmd, ['i'])
+    .then(() => {
+      spinner.succeed()
+      return
+    })
+    .catch(e => {
+      spinner.fail(`Error while installing app dependencies`)
+      console.log(chalk.red('--------------------------------------------------------------'))
+      console.log(chalk.italic(e.stderr))
+      console.log(chalk.red('--------------------------------------------------------------'))
+      process.env.LNG_BUILD_EXIT_ON_FAIL === 'true' && process.exit(1)
+    })
+}
+
 module.exports = {
   removeFolder,
   ensureFolderExists,
@@ -261,4 +281,5 @@ module.exports = {
   hasNewSDK,
   ensureLightningApp,
   findFile,
+  nodeModuleInstall
 }

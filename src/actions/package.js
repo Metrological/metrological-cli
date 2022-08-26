@@ -113,12 +113,13 @@ module.exports = () => {
         packageData = metadata
         return metadata
       }),
-    metadata => requiredMetaData(metadata),
-    metadata => buildHelpers.bundleEs6App(tmpDir, metadata),
-    metadata => buildHelpers.bundleEs5App(tmpDir, metadata),
+    () => requiredMetaData(packageData),
+    () => buildHelpers.removeFolder("node_modules"),
+    () => buildHelpers.nodeModuleInstall(tmpDir),
+    () => buildHelpers.bundleEs6App(tmpDir, packageData),
+    () => buildHelpers.bundleEs5App(tmpDir, packageData),
     () => buildHelpers.ensureFolderExists(releasesDir),
-    () => buildHelpers.readMetadata(),
-    metadata => pack(tmpDir, releasesDir, metadata),
+    () => pack(tmpDir, releasesDir, packageData),
     tgzFile => (packageData.tgzFile = tgzFile),
     () => buildHelpers.removeFolder(tmpDir),
     () => packageData,

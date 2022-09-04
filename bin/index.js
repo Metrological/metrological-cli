@@ -23,9 +23,9 @@
 require('dotenv').config()
 
 const program = require('commander')
+const chalk = require('chalk')
 
 const uploadAction = require('../src/actions/upload')
-const upToDate = require('../src/helpers/uptodate')
 
 const updateCheck = (force = null) => upToDate(force === null ? Math.random() < 0.8 : !force)
 
@@ -39,8 +39,9 @@ program
     ].join('')
   )
   .action(() => {
-    updateCheck(true)
-      .then(() => uploadAction())
+    uploadAction()
+    //updateCheck(true)
+      //.then(() => uploadAction())
       .catch(e => {
         console.error(e)
         process.exit(1)
@@ -48,18 +49,7 @@ program
   })
 
 program.on('command:*', () => {
-  const suggestion = didYouMean(
-    program.args[0] || '',
-    program.commands.map(command => command._name)
-  )
-
-  console.log("Sorry, that command doesn't seems to exist ...")
-  console.log('')
-  if (suggestion) {
-    console.log('Perhaps you meant: ' + chalk.yellow('lng ' + suggestion) + '?')
-    console.log('')
-  }
-  console.log('Use ' + chalk.yellow('lng -h') + ' to see a full list of available commands')
+  console.log('Use ' + chalk.yellow('metro -h') + ' to see a full list of available commands')
   process.exit(1)
 })
 

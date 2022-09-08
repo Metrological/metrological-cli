@@ -147,13 +147,10 @@ const requiredMetaData = (metadata) => {
   }
 }
 
-const bundleApp = (es, metadata) => {
-  spinner.start(`Building ${es} appBundle and saving to build`)
-  
-  var cmd = '--' + es
-  //TODO lightningjs cli needs es version on build command same as dist
+const bundleApp = (metadata) => {
+  spinner.start(`Building appBundle and saving to build`)
 
-  return execa('lng', ['build'])
+  return execa('lng', ['build', '--es5', '--es6'])
     .then((e) => {
       spinner.succeed()
       return
@@ -222,7 +219,6 @@ const checkUploadFileSize = packageData => {
 }
 
 const upload = (packageData, user) => {
-  //TODO  this error is not giving user feedback ['missingFiles: should contain folders(src, static) and files(metadata.json, appBundle.js, appBundle.es5.js)']
   spinner.start('Uploading package to Metrological Back Office')
   if (!packageData.identifier) {
     exit("Metadata.json doesn't contain an identifier field")
@@ -246,7 +242,14 @@ const upload = (packageData, user) => {
     .then(({ data }) => {
       // errors also return a 200 status reponse, so we intercept errors here manually
       if (data.error) {
-        exit(UPLOAD_ERRORS[data.error] || data.error)
+        if (Array.isArray(data.error)) {
+          data.error.forEach(function(msg){
+            spinner.fail(msg)
+          })
+          process.exit()
+        } else {
+          exit(UPLOAD_ERRORS[data.error] || data.error)
+        }
       } else {
         spinner.succeed()
       }
@@ -275,9 +278,8 @@ module.exports = () => {
             return metadata
           }),
     () => requiredMetaData(packageData),
-    () => bundleApp('es5', packageData),
-    //() => bundleApp('es6', packageData),
-    //() => removeFolder(tmpDir),
+    () => bundleApp(packageData, tmpDir),
+    () => removeFolder(tmpDir),
     () => ensureFolderExists(tmpDir),
     () => copyFiles(tmpDir),
     () => ensureFolderExists(releasesDir),

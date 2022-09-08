@@ -1,6 +1,6 @@
 {
   "name": "lightning-cli-upload",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "description": "Lightning-CLI-Upload: Command Line Interface Upload package for uploading a lightning App to the backend ",
   "bin": {
     "metro": "./bin/index.js"

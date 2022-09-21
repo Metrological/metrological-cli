@@ -27,10 +27,11 @@ const path = require('path')
 const shell = require('shelljs')
 const targz = require('targz')
 
-const ask = require('../helpers/ask')
-const exit = require('../helpers/exit')
-const sequence = require('../helpers/sequence')
-const spinner = require('../helpers/spinner')
+const ask = require('@lightningjs/cli/src/helpers/ask')
+const exit = require('@lightningjs/cli/src/helpers/exit')
+const sequence = require('@lightningjs/cli/src/helpers/sequence')
+const spinner = require('@lightningjs/cli/src/helpers/spinner')
+const buildHelpers = require('@lightningjs/cli/src/helpers/build')
 
 const UPLOAD_ERRORS = {
   version_already_exists: 'The current version of your app already exists',
@@ -57,18 +58,6 @@ const login = key => {
     })
 }
 
-const removeFolder = folder => {
-  spinner.start('Removing "' + folder.split('/').pop() + '" folder')
-  shell.rm('-rf', folder)
-  spinner.succeed()
-}
-
-const ensureFolderExists = folder => {
-  spinner.start('Ensuring "' + folder.split('/').pop() + '" folder exists')
-  shell.mkdir('-p', folder)
-  spinner.succeed()
-}
-
 const nodeModuleInstall = () => {
   spinner.start(`Installing app dependencies`)
   
@@ -88,58 +77,39 @@ const nodeModuleInstall = () => {
     })
 }
 
-const readMetadata = () => {
-  return new Promise((resolve, reject) => {
-    const file = path.join(process.cwd(), 'metadata.json')
-    if (fs.existsSync(file)) {
-      try {
-        resolve(JSON.parse(fs.readFileSync(file, 'utf8')))
-      } catch (e) {
-        spinner.fail(`Error occurred while reading ${file} file\n\n${e}`)
-        reject(e)
-      }
-    } else {
-      spinner.fail(`File not found error occurred while reading ${file} file`)
-      reject('"' + fileName + '" not found')
-    }
-  })
-}
-
 const requiredMetaData = (metadata) => {
   spinner.start('Checking required fields in metadata.json')
 
+  //Metadata fields that must exist
   const schema = {
     splashImage: value => typeof value === 'string' || value instanceof String,
     icon: value => typeof value === 'string' || value instanceof String
   };
-  const requireDate = { // Dates when required metafields fail upload
-    splashImage: "2022-11-30",
-    icon: "2022-11-30"
-  }
+
+  // Metadata fields that get a warning that they must exist, if not in array it will stop the flow
+  const warningFields = ['splashImage', 'icon']
 
   const validate = (object, schema) => Object
     .keys(schema)
     .filter(key => !schema[key](object[key]))
     .map(key => ({
       key: key,
-      msg: `${key} is a required field`,
-      date: new Date(requireDate[key])
+      error: chalk.red(`'${key}' is a required field!!!`),
+      warning: chalk.green(`'${key}' is a required field. Soon you will not be able to upload.`)
     }));
 
   const errors = validate(metadata, schema);
-
+  
   if (errors.length > 0) {
     spinner.fail()
     let allowUpload = true
     console.log(chalk.red('--------------------------------------------------------------'))
     errors.forEach((element) => {
-      if (element.date < new Date()) {
-        allowUpload = false
-        console.log(chalk.italic(`** Metadata: ${element.msg}!!!`))
-      } else
-        console.log(chalk.italic(`** Metadata: ${element.msg}. After ${element.date.toLocaleString()} you will not be able to upload.`))
+      allowUpload = (warningFields.includes(element.key))
+      console.error(chalk.italic(`** Metadata: ${ allowUpload ? element.warning : element.error }`))
     })
     console.log(chalk.red('--------------------------------------------------------------'))
+
     return (!allowUpload) ? process.exit(1) : metadata;
   } else {
     spinner.succeed()
@@ -156,7 +126,7 @@ const bundleApp = (metadata) => {
       return
     })
     .catch(e => {
-      spinner.fail(`Error while bundling app `+es)
+      spinner.fail(`Error while bundling app.`)
       console.log(chalk.red('--------------------------------------------------------------'))
       console.log(chalk.italic(e))
       console.log(chalk.red('--------------------------------------------------------------'))
@@ -271,18 +241,18 @@ module.exports = () => {
     // todo: save API key locally for future use and set it as default answer
     () => ask('Please provide your API key'),
     apiKey => login(apiKey).then(usr => ((user = usr), (usr.apiKey = apiKey))),
-    () => removeFolder("node_modules"),
+    () => buildHelpers.removeFolder("node_modules"),
     () => nodeModuleInstall(),
-    () => readMetadata().then(metadata => {
+    () => buildHelpers.readMetadata().then(metadata => {
             packageData = metadata
             return metadata
           }),
     () => requiredMetaData(packageData),
     () => bundleApp(packageData, tmpDir),
-    () => removeFolder(tmpDir),
-    () => ensureFolderExists(tmpDir),
+    () => buildHelpers.removeFolder(tmpDir),
+    () => buildHelpers.ensureFolderExists(tmpDir),
     () => copyFiles(tmpDir),
-    () => ensureFolderExists(releasesDir),
+    () => buildHelpers.ensureFolderExists(releasesDir),
     () => pack(tmpDir, releasesDir, packageData),
     tgzFile => (packageData.tgzFile = tgzFile),
     () => checkUploadFileSize(packageData),

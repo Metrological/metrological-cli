@@ -19,6 +19,7 @@
   },
   "homepage": "https://github.com/Metrological/metro-lightning-upload#readme",
   "dependencies": {
+    "@lightningjs/cli": "^2.8.1",
     "axios": "^0.27.2",
     "chalk": "^4.1.0",
     "commander": "^6.1.0",
@@ -26,8 +27,6 @@
     "execa": "^4.0.3",
     "form-data": "^4.0.0",
     "inquirer": "^7.3.3",
-    "is-online": "^8.4.0",
-    "latest-version": "^7.0.0",
     "ora": "^5.1.0",
     "path": "^0.12.7",
     "shelljs": "^0.8.5",

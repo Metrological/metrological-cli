@@ -230,23 +230,50 @@ const upload = (packageData, user) => {
     })
 }
 
+const getTokens = (file, identifier) => {
+  return new Promise((resolve, reject) => {
+    if (fs.existsSync(file)) {
+      try {
+        resolve(JSON.parse(fs.readFileSync(path.join(os.homedir(), '.metro-upload'))))
+      } catch(e) {
+        reject(e)
+      }
+    } else {
+      fs.writeFileSync(file, JSON.stringify({}))
+      resolve({})
+    }
+  })
+}
+
+const storeToken = (file, user, identifier, tokens) => {
+  tokens[identifier] = user.apiKey
+  fs.writeFileSync(path.join(os.homedir(), '.metro-upload'), JSON.stringify(tokens))
+  return true
+}
+
 module.exports = () => {
-  let user
+  let user, tokens
   // set environment to production (to enable minify)
   process.env.NODE_ENV = 'production'
   const releasesDir = path.join(process.cwd(), 'releases')
   const tmpDir = path.join(process.cwd(), '/.tmp')
+  const tokenfile = path.join(os.homedir(), '.metro-upload')
   let packageData
   return sequence([
-    // todo: save API key locally for future use and set it as default answer
-    () => ask('Please provide your API key'),
-    apiKey => login(apiKey).then(usr => ((user = usr), (usr.apiKey = apiKey))),
-    () => buildHelpers.removeFolder("node_modules"),
-    () => nodeModuleInstall(),
+    () => buildHelpers.ensureLightningApp(),
     () => buildHelpers.readMetadata().then(metadata => {
             packageData = metadata
             return metadata
           }),
+    () => getTokens(tokenfile, packageData.identifier).then(fetchedTokens => {
+            tokens = fetchedTokens
+            return tokens[packageData.identifier] || ""
+    }),
+    token => ask('Please provide your API key', token),
+    apiKey => login(apiKey).then(usr => ((user = usr), (usr.apiKey = apiKey))),
+    () => storeToken(tokenfile, user, packageData.identifier, tokens),
+    () => buildHelpers.removeFolder("node_modules"),
+    () => nodeModuleInstall(),
     () => requiredMetaData(packageData),
     () => bundleApp(packageData, tmpDir),
     () => buildHelpers.removeFolder(tmpDir),

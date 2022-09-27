@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "description": "metro-lightning-upload: Command Line Interface Upload package for uploading a lightning App to the backend ",
   "bin": {
-    "metro": "./bin/index.js"
+    "metro": "./bin/index.js",
+    "metro-lightning-upload": "./bin/index.js"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"

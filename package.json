@@ -1,24 +1,23 @@
 {
-  "name": "metro-lightning-upload",
+  "name": "@metrological/cli",
   "version": "1.0.0",
-  "description": "metro-lightning-upload: Command Line Interface Upload package for uploading a lightning App to the backend ",
+  "description": "Metrological CLI",
   "bin": {
-    "metro": "./bin/index.js",
-    "metro-lightning-upload": "./bin/index.js"
+    "metro": "./bin/index.js"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Metrological/metro-lightning-upload.git"
+    "url": "git+https://github.com/Metrological/metrological-cli.git"
   },
   "author": "Maikel Brons <m.brons@metrological.com>",
   "license": "Apache-2.0",
   "bugs": {
-    "url": "https://github.com/Metrological/metro-lightning-upload/issues"
+    "url": "https://github.com/Metrological/metrological-cli/issues"
   },
-  "homepage": "https://github.com/Metrological/metro-lightning-upload#readme",
+  "homepage": "https://github.com/Metrological/metrological-cli#readme",
   "dependencies": {
     "@lightningjs/cli": "^2.8.1",
     "axios": "^0.27.2",

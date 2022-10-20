@@ -1,0 +1,35 @@
+{
+  "name": "@metrological/cli",
+  "version": "1.0.0",
+  "description": "Metrological CLI",
+  "bin": {
+    "metro": "./bin/index.js"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Metrological/metrological-cli.git"
+  },
+  "author": "Maikel Brons <m.brons@metrological.com>",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/Metrological/metrological-cli/issues"
+  },
+  "homepage": "https://github.com/Metrological/metrological-cli#readme",
+  "dependencies": {
+    "@lightningjs/cli": "^2.8.1",
+    "axios": "^0.27.2",
+    "chalk": "^4.1.0",
+    "commander": "^6.1.0",
+    "dotenv": "^16.0.2",
+    "execa": "^4.0.3",
+    "form-data": "^4.0.0",
+    "inquirer": "^7.3.3",
+    "ora": "^5.1.0",
+    "path": "^0.12.7",
+    "shelljs": "^0.8.5",
+    "targz": "^1.0.1"
+  }
+}

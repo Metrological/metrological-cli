@@ -27,8 +27,6 @@ const chalk = require('chalk')
 
 const uploadAction = require('../src/actions/upload')
 
-const updateCheck = (force = null) => upToDate(force === null ? Math.random() < 0.8 : !force)
-
 program
   .command('upload')
   .description(

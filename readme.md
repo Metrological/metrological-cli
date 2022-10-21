@@ -1,5 +1,7 @@
 # Metrological CLI
 
+[![npm version](https://badge.fury.io/js/@metrological%2Fcli.svg)](https://badge.fury.io/js/@metrological%2Fcli)
+
 The Metrological CLI is the _Command Line Interface_ tool for uploading Lightning Apps to the Metrological Dashboard.
 
 ## Prerequisites

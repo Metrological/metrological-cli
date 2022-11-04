@@ -20,37 +20,37 @@
  */
 
 // load and parse (optional) .env file with
-require('dotenv').config()
+require('dotenv').config();
 
-const program = require('commander')
-const chalk = require('chalk')
+const program = require('commander');
+const chalk = require('chalk');
 
-const uploadAction = require('../src/actions/upload')
+const uploadAction = require('../src/actions/upload');
+
+// Derive version from package.json
+program
+  .version(require('../package.json').version);
 
 program
   .command('upload')
-  .description(
-    [
-      '🚀',
-      ' '.repeat(3),
-      'Upload the Lightning App to the Metrological Back Office to be published in an App Store',
-    ].join('')
-  )
+  .description('🚀   Upload the Lightning App to the Metrological Back Office to be published in an App Store')
   .action(() => {
-    uploadAction()
-    .catch(e => {
-      console.error(e)
-      process.exit(1)
-    })
-  })
+    try {
+      uploadAction();
+    } catch (e) {
+      console.error(e);
+      process.exit(1);
+    }
+  });
 
+// Fallback when a command isn't detected by commander
 program.on('command:*', () => {
-  console.log('Use ' + chalk.yellow('metro -h') + ' to see a full list of available commands')
-  process.exit(1)
-})
+  console.log(`Use ${chalk.yellow('metro -h')} to see a full list of available commands`);
+  process.exit(1);
+});
 
-program.parse(process.argv)
+program.parse(process.argv);
 
 if (!process.argv.slice(2).length) {
-  program.outputHelp()
+  program.outputHelp();
 }

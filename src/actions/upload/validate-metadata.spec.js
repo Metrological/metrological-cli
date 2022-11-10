@@ -42,37 +42,40 @@ describe('validateMetadata', () => {
     validateMetadata();
     expect(spinner.start).toHaveBeenCalledWith('Checking validity of metadata.json');
   });
+
   it("exits correctly when metadata isn't passed", () => {
     validateMetadata();
     expectAbort("Metadata wasn't found, make sure it's provided through a metadata.json file");
   });
+
   it('exits correctly when name is missing', () => {
     validateMetadata({});
     expectAbort('Metadata is invalid: "name" is required');
   });
+
   it('exits correctly when name is invalid', () => {
     validateMetadata({ name: 123 });
     expectAbort('Metadata is invalid: "name" is not of a type(s) string');
   });
+
   it('exits correctly when identifier is missing', () => {
     validateMetadata({ name: 'validName' });
     expectAbort('"identifier" is required');
   });
+
   it('exits correctly when identifier is invalid', () => {
     validateMetadata({ name: 'validName', identifier: 123 });
     expectAbort('"identifier" is not of a type(s) string');
   });
+
   it('exits correctly when version is missing', () => {
     validateMetadata({ name: 'validName', identifier: 'validIdentifier' });
     expectAbort('"version" is required');
   });
+
   it('exits correctly when version is of invalid type', () => {
     validateMetadata({ name: 'validName', identifier: 'validIdentifier', version: 1 });
     expectAbort('"version" is not of a type(s) string');
-  });
-  it('exits correctly when version has unexpected value', () => {
-    validateMetadata({ name: 'validName', identifier: 'validIdentifier', version: '1.0.2-alpha.0' });
-    expectAbort('"version" does not match pattern');
   });
 
   it('exits correctly when an invalid URL is passed', () => {
@@ -87,23 +90,6 @@ describe('validateMetadata', () => {
       name: 'validName', identifier: 'validIdentifier', version: '1.2.3', icon: './static/bla',
     });
     expectAbort('"icon" does not match pattern');
-  });
-
-  it('exits correctly when an invalid artwork object is passed', () => {
-    validateMetadata({
-      name: 'validName',
-      identifier: 'validIdentifier',
-      version: '1.2.3',
-      icon: './static/bla.jpg',
-      icons: {
-        default: './static/bla.jpg',
-        square: './static/bla.jpg',
-        rounded: './static/bla.jpg',
-        landscape: './static/bla.jpg',
-      },
-      artwork: {},
-    });
-    expectAbort('"artwork.1920x1080" is required');
   });
 
   it('does not exit when only required properties are passed and valid', () => {
@@ -137,6 +123,10 @@ describe('validateMetadata', () => {
         landscape: './static/bla.jpg',
       },
       splashImage: './static/bla.jpg',
+      artwork: {
+        '1920x1080': './static/bla.jpg',
+        '1280x720': './static/bla.jpg',
+      },
     };
     const result = validateMetadata(validMetadata);
     expect(result).toBe(validMetadata);

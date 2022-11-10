@@ -111,10 +111,14 @@ const copyFiles = (folder, isExternalApp) => {
   // Always copy metadata.json
   shell.cp('./metadata.json', folder);
 
+  // Always copy static folder as it probably contains icons
+  copyFile('./static', folder, true);
+
   if (!isExternalApp) {
-    ['./src', './static'].forEach((p) => copyFile(p, folder, true));
+    copyFile('./src', folder, true);
     ['./build/appBundle.js', './build/appBundle.js.map', './build/appBundle.es5.js', './build/appBundle.es5.js.map'].forEach((p) => copyFile(p, folder, false));
   }
+
   spinner.succeed();
 };
 
@@ -174,6 +178,8 @@ const upload = async (metadata, user, apiKey, tgzFile) => {
 
   // errors also return a 200 status response, so we intercept errors here manually
   if (data.error) {
+    // The backend sometimes returns errors as an array, sometimes as a single string.
+    // We need to support both cases (at least for now)
     if (Array.isArray(data.error)) {
       data.error.forEach((msg) => {
         spinner.fail(msg);
@@ -194,7 +200,6 @@ module.exports = async () => {
   const tmpDir = path.join(process.cwd(), '/.tmp');
 
   // todo: save API key locally for future use and set it as default answer
-  // TODO: REMOVE: f05465c8c30ed24cf47f4fa0456c87baf27630be65f4bc33d8b7bda1bbd7cbbf
   const apiKey = await ask('Please provide your API key');
   const user = await login(apiKey);
   const metadataRaw = await buildHelpers.readMetadata();

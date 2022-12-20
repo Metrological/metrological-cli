@@ -1,2 +1,7 @@
 node_modules/
 .DS_Store
+.vscode
+coverage
+
+# 'test' directory contains test files/zips
+test/

@@ -172,9 +172,11 @@ const upload = async (metadata, user, apiKey, tgzFile) => {
   const headers = form.getHeaders();
   headers['X-Api-Token'] = apiKey;
 
-  const data = await axios.post(`https://api.metrological.com/api/${user.type}/app-store/upload-lightning`, form, {
+  const { data } = await axios.post(`https://api.metrological.com/api/${user.type}/app-store/upload-lightning`, form, {
     headers,
   });
+
+  console.log('data from request', data);
 
   // errors also return a 200 status response, so we intercept errors here manually
   if (data.error) {
@@ -210,7 +212,6 @@ module.exports = async () => {
     console.log(' ');
     console.log(chalk.yellow('Detected externally hosted app, skipping build steps'));
   } else {
-    buildHelpers.removeFolder(path.join(process.cwd(), 'node_modules'));
     await nodeModuleInstall();
     await bundleApp();
   }

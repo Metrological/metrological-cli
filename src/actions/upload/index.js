@@ -103,7 +103,9 @@ const copyFile = (filePath, folder, isFolder) => {
 
   if (isFolder) {
     shell.cp('-r', filePath, folder);
+    return;
   }
+  shell.cp(filePath, folder);
 };
 
 const copyFiles = (folder, isExternalApp) => {
@@ -172,7 +174,7 @@ const upload = async (metadata, user, apiKey, tgzFile) => {
   const headers = form.getHeaders();
   headers['X-Api-Token'] = apiKey;
 
-  const data = await axios.post(`https://api.metrological.com/api/${user.type}/app-store/upload-lightning`, form, {
+  const { data } = await axios.post(`https://api.metrological.com/api/${user.type}/app-store/upload-lightning`, form, {
     headers,
   });
 
@@ -210,7 +212,6 @@ module.exports = async () => {
     console.log(' ');
     console.log(chalk.yellow('Detected externally hosted app, skipping build steps'));
   } else {
-    buildHelpers.removeFolder(path.join(process.cwd(), 'node_modules'));
     await nodeModuleInstall();
     await bundleApp();
   }

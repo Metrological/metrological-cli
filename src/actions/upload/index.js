@@ -216,7 +216,6 @@ module.exports = async () => {
     await bundleApp();
   }
 
-  buildHelpers.removeFolder(tmpDir);
   buildHelpers.ensureFolderExists(tmpDir);
   copyFiles(tmpDir, !!metadata.externalUrl);
   buildHelpers.ensureFolderExists(releasesDir);

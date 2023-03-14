@@ -1,6 +1,6 @@
 {
   "name": "@metrological/cli",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "description": "Metrological CLI",
   "bin": {
     "metro": "./bin/index.js"
@@ -11,7 +11,11 @@
   "scripts": {
     "test": "jest",
     "test:watch": "jest --watch --collectCoverage",
-    "lint": "eslint src/**/*.js"
+    "lint": "eslint src/**/*.js",
+    "build": "npm pack --dry-run --json",
+    "pack": "npm pack --pack-destination ~"
+  
+    
   },
   "repository": {
     "type": "git",

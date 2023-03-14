@@ -1,6 +1,6 @@
 {
   "name": "@metrological/cli",
-  "version": "1.1.2",
+  "version": "1.1.1",
   "description": "Metrological CLI",
   "bin": {
     "metro": "./bin/index.js"

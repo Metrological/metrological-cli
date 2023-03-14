@@ -1,7 +1,7 @@
 # Changelog
 
 ## 1.1.2
-- Fixed npx metrological cli upload error'
+- Fixed npx metrological cli upload error
 
 ## 1.1.1
 - Fixed a bug where single files were not copied and packed (https://github.com/Metrological/metrological-cli/pull/5)

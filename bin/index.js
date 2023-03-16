@@ -28,15 +28,17 @@ const chalk = require('chalk');
 const uploadAction = require('../src/actions/upload');
 
 // Derive version from package.json
-program
-  .version(require('../package.json').version);
+program.version(require('../package.json').version);
+
+program.option('-d, --debug', 'output extra debugging', false);
 
 program
   .command('upload')
   .description('🚀   Upload the Lightning App to the Metrological Back Office to be published in an App Store')
   .action(() => {
+    const { debug } = program.opts();
     try {
-      uploadAction();
+      uploadAction(debug);
     } catch (e) {
       console.error(e);
       process.exit(1);

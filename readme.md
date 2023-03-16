@@ -100,3 +100,4 @@ metro upload
 | `upload`    | :rocket: Upload the Lightning App to the Metrological Back Office to be published in an App Store |
 | `--help`    | Output the version number                                                                         |
 | `--version` | Display help for command                                                                          |
+| `--debug`   | Output extra debugging info                                                                       |

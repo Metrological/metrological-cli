@@ -1,7 +1,7 @@
 # Changelog
 
 ## 1.1.3
-
+- Added a local Command object to use
 ## 1.1.2
 - Fixed npx metrological cli upload error
 

@@ -1,4 +1,6 @@
 # Changelog
+## 1.2.0
+- Add `--debug` option for additional (verbose) logging
 
 ## 1.1.2
 - Fixed npx metrological cli upload error

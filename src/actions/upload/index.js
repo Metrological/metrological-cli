@@ -34,6 +34,16 @@ const buildHelpers = require('@lightningjs/cli/src/helpers/build');
 
 const validateMetadata = require('./validate-metadata');
 
+// Only log when debugging is enabled
+let debuggingEnabled = false;
+const debugLogger = (msg) => {
+  if (!debuggingEnabled) {
+    return;
+  }
+  spinner.stop();
+  console.log(`${chalk.bgWhite('[debug]')} ${chalk.blackBright(msg)}`);
+};
+
 // These codes are returned by the backend, convert them into readable error messages
 const UPLOAD_ERRORS = {
   version_already_exists: 'The current version of your app already exists',
@@ -48,6 +58,7 @@ const login = (key) => {
       headers: { 'X-Api-Token': key },
     })
     .then(({ data }) => {
+      debugLogger(`Got OK response from API: ${JSON.stringify(data)}`);
       const user = data.securityContext.pop();
       if (user) {
         spinner.succeed();
@@ -55,7 +66,8 @@ const login = (key) => {
       }
       return exit('Unexpected authentication error');
     })
-    .catch(() => {
+    .catch((e) => {
+      debugLogger(`Got faulty response from API: ${e.message}`);
       exit('Incorrect API key, not logged in to Metrological Dashboard or IP was not whitelisted');
     });
 };
@@ -73,7 +85,7 @@ const nodeModuleInstall = () => {
       console.log(chalk.red('--------------------------------------------------------------'));
       console.log(chalk.italic(e.stderr));
       console.log(chalk.red('--------------------------------------------------------------'));
-      return process.env.LNG_BUILD_EXIT_ON_FAIL === 'true' && process.exit(1);
+      process.exit(1);
     });
 };
 
@@ -95,10 +107,11 @@ const bundleApp = () => {
 
 const copyFile = (filePath, folder, isFolder) => {
   const exists = shell.test('-e', filePath);
+  debugLogger(`Copying ${isFolder ? 'folder' : 'file'} "${filePath}" to "${folder}"`);
   if (!exists) {
     console.log(' ');
     console.log(chalk.red(`Could not find ${filePath}`));
-    return;
+    process.exit(1);
   }
 
   if (isFolder) {
@@ -195,17 +208,30 @@ const upload = async (metadata, user, apiKey, tgzFile) => {
   }
 };
 
-module.exports = async () => {
+module.exports = async (debug) => {
+  debuggingEnabled = debug;
+  debugLogger('Debugging is enabled');
   // set environment to production (to enable minify)
+  debugLogger('Setting the NODE_ENV to production');
   process.env.NODE_ENV = 'production';
+
   const releasesDir = path.join(process.cwd(), 'releases');
+  debugLogger(`releasesDir: ${releasesDir}`);
   const tmpDir = path.join(process.cwd(), '/.tmp');
+  debugLogger(`tmpDir: ${tmpDir}`);
+
+  // Clear the console
+  if (!debug) {
+    console.clear();
+  }
 
   // todo: save API key locally for future use and set it as default answer
   const apiKey = await ask('Please provide your API key');
   const user = await login(apiKey);
   const metadataRaw = await buildHelpers.readMetadata();
   const metadata = validateMetadata(metadataRaw);
+
+  debugLogger(`metadata: ${JSON.stringify(metadata)}`);
 
   // Only start building non-externally hosted apps
   if (metadata.externalUrl) {

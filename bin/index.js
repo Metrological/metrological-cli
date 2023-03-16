@@ -22,7 +22,9 @@
 // load and parse (optional) .env file with
 require('dotenv').config();
 
-const program = require('commander');
+const { Command } = require('commander');
+
+const program = new Command();
 const chalk = require('chalk');
 
 const uploadAction = require('../src/actions/upload');

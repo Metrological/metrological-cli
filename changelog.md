@@ -1,4 +1,6 @@
 # Changelog
+## 1.2.1
+- Add more logging for debugging purposes
 ## 1.2.0
 - Add `--debug` option for additional (verbose) logging
 

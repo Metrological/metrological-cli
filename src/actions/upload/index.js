@@ -109,6 +109,8 @@ const copyFile = (filePath, folder, isFolder) => {
   const exists = shell.test('-e', filePath);
   debugLogger(`Copying ${isFolder ? 'folder' : 'file'} "${filePath}" to "${folder}"`);
   if (!exists) {
+    debugLogger(`${isFolder ? 'Folder' : 'File'} ${filePath} does not exist in ${shell.pwd()}`);
+    debugLogger(`Founds paths: ${shell.ls('-R', shell.pwd()).grep('-v', 'node_modules|src')}`);
     console.log(' ');
     console.log(chalk.red(`Could not find ${filePath}`));
     process.exit(1);
@@ -208,17 +210,30 @@ const upload = async (metadata, user, apiKey, tgzFile) => {
   }
 };
 
+const packageJSON = require('../../../package.json');
+
 module.exports = async (debug) => {
+  // This should move into a utility thingy
   debuggingEnabled = debug;
   debugLogger('Debugging is enabled');
+  debugLogger(`CLI version: ${packageJSON.version}`);
+  debugLogger(`Node version: ${process.version}`);
+  debugLogger(`Platform: ${process.platform}`);
+  debugLogger(`Cwd: ${process.cwd()}`);
+  debugLogger(`Environment variables: ${JSON.stringify(process.env)}`);
   // set environment to production (to enable minify)
   debugLogger('Setting the NODE_ENV to production');
   process.env.NODE_ENV = 'production';
 
-  const releasesDir = path.join(process.cwd(), 'releases');
-  debugLogger(`releasesDir: ${releasesDir}`);
+  // The '.tmp' dir will hold the files that are going to be packed
   const tmpDir = path.join(process.cwd(), '/.tmp');
   debugLogger(`tmpDir: ${tmpDir}`);
+  buildHelpers.removeFolder(tmpDir);
+  debugLogger(`removed folder: ${tmpDir}`);
+
+  // The 'releases' folder will hold all packed apps
+  const releasesDir = path.join(process.cwd(), 'releases');
+  debugLogger(`releasesDir: ${releasesDir}`);
 
   // Clear the console
   if (!debug) {
@@ -243,6 +258,8 @@ module.exports = async (debug) => {
   }
 
   buildHelpers.ensureFolderExists(tmpDir);
+  debugLogger(`created folder: ${tmpDir}`);
+
   copyFiles(tmpDir, !!metadata.externalUrl);
   buildHelpers.ensureFolderExists(releasesDir);
   const tgzFile = await pack(tmpDir, releasesDir, metadata);

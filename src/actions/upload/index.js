@@ -215,14 +215,14 @@ const packageJSON = require('../../../package.json');
 module.exports = async (debug) => {
   // This should move into a utility thingy
   debuggingEnabled = debug;
-  debugLogger('Debugging is enabled');
-  debugLogger(`CLI version: ${packageJSON.version}`);
   debugLogger(`Node version: ${process.version}`);
+  debugLogger(`metrological-cli version: ${packageJSON.version}`);
+  debugLogger(`lightning-cli version: ${shell.exec('lng --version', { silent: true }).stdout.replace('Lightning-CLI ', '').trim()}`);
+  debugLogger(`lightning-cli PATH: ${shell.exec('which lng', { silent: true }).stdout}`);
   debugLogger(`Platform: ${process.platform}`);
   debugLogger(`Cwd: ${process.cwd()}`);
   debugLogger(`Environment variables: ${JSON.stringify(process.env)}`);
   // set environment to production (to enable minify)
-  debugLogger('Setting the NODE_ENV to production');
   process.env.NODE_ENV = 'production';
 
   // The '.tmp' dir will hold the files that are going to be packed
@@ -254,7 +254,9 @@ module.exports = async (debug) => {
     console.log(chalk.yellow('Detected externally hosted app, skipping build steps'));
   } else {
     await nodeModuleInstall();
+    debugLogger('Starting build');
     await bundleApp();
+    debugLogger(`Done building app, files: ${shell.ls(path.join(process.cwd(), 'build'))}`);
   }
 
   buildHelpers.ensureFolderExists(tmpDir);

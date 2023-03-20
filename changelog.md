@@ -1,4 +1,9 @@
 # Changelog
+
+## 1.2.2
+- Added more logging for debugging purposes
+- Removed npx from README due to a bug found in Lightning-CLI (https://github.com/rdkcentral/Lightning-CLI/issues/222)
+
 ## 1.2.1
 - Add more logging for debugging purposes
 ## 1.2.0

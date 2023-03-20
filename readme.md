@@ -39,30 +39,22 @@ In the January 2023 release of the [Lightning-CLI](https://github.com/rdkcentral
 
 ## Usage
 
-### Method 1: Using npx (recommended)
+### Method 1: Installing globally (Recommended)
 
-You can use `npx` to execute the `upload` command instantly
+You can install the Metrological CLI _globally_ on your system, by running the following command:
 
 ```bash
-npx @metrological/cli upload
+npm install -g @metrological/cli
 ```
 
-You can also specify a script inside the `package.json` of your App, which uses the `npx` command
+Then inside the root of a Lightning App you can run the following command.
 
-```json
-{
-  "name": "MyLightningApp",
-  "scripts": {
-    "upload": "npx @metrological/cli upload"
-  }
-}
+```bash
+metro upload
 ```
-
-To execute this, run `npm run upload` inside the root folder of your App (this is [default NPM behaviour](https://docs.npmjs.com/cli/v8/commands/npm-run-script))
-
 ### Method 2: Installing as a devDependency
 
-You can install the Metrological CLI as a `devDependency` by running the NPM command for it:
+Alternatively you can install the Metrological CLI as a `devDependency` by running the NPM command for it:
 
 ```bash
 npm install --save-dev @metrological/cli
@@ -78,20 +70,9 @@ You can then add a `script` in your `package.json` to use it, like so:
   }
 }
 ```
+To execute this, run `npm run upload` inside the root folder of your App (this is [default NPM behaviour](https://docs.npmjs.com/cli/v8/commands/npm-run-script))
 
-### Method 3: Installing globally
 
-Alternatively you can install the Metrological CLI _globally_ on your system, by running the following command:
-
-```bash
-npm install -g @metrological/cli
-```
-
-Then inside the root of a Lightning App you can run the following command.
-
-```bash
-metro upload
-```
 
 ## Available commands
 

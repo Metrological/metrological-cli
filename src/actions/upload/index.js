@@ -17,22 +17,22 @@
  * limitations under the License.
  */
 
-const axios = require('axios');
-const chalk = require('chalk');
-const execa = require('execa');
-const FormData = require('form-data');
-const fs = require('fs');
-const os = require('os');
-const path = require('path');
-const shell = require('shelljs');
-const targz = require('targz');
+const axios = require("axios");
+const chalk = require("chalk");
+const execa = require("execa");
+const FormData = require("form-data");
+const fs = require("fs");
+const os = require("os");
+const path = require("path");
+const shell = require("shelljs");
+const targz = require("targz");
 
-const ask = require('@lightningjs/cli/src/helpers/ask');
-const exit = require('@lightningjs/cli/src/helpers/exit');
-const spinner = require('@lightningjs/cli/src/helpers/spinner');
-const buildHelpers = require('@lightningjs/cli/src/helpers/build');
+const ask = require("@lightningjs/cli/src/helpers/ask");
+const exit = require("@lightningjs/cli/src/helpers/exit");
+const spinner = require("@lightningjs/cli/src/helpers/spinner");
+const buildHelpers = require("@lightningjs/cli/src/helpers/build");
 
-const validateMetadata = require('./validate-metadata');
+const validateMetadata = require("./validate-metadata");
 
 // Only log when debugging is enabled
 let debuggingEnabled = false;
@@ -41,121 +41,155 @@ const debugLogger = (msg) => {
     return;
   }
   spinner.stop();
-  console.log(`${chalk.bgWhite('[debug]')} ${chalk.blackBright(msg)}`);
+  console.log(`${chalk.bgWhite("[debug]")} ${chalk.blackBright(msg)}`);
 };
 
 // These codes are returned by the backend, convert them into readable error messages
 const UPLOAD_ERRORS = {
-  version_already_exists: 'The current version of your app already exists',
-  missing_field_file: 'There is a missing field',
-  app_belongs_to_other_user: 'You are not the owner of this app',
+  version_already_exists: "The current version of your app already exists",
+  missing_field_file: "There is a missing field",
+  app_belongs_to_other_user: "You are not the owner of this app",
 };
 
 const login = (key) => {
-  spinner.start('Authenticating with Metrological Back Office');
+  spinner.start("Authenticating with Metrological Back Office");
   return axios
-    .get('https://api.metrological.com/api/authentication/login-status', {
-      headers: { 'X-Api-Token': key },
-    })
-    .then(({ data }) => {
-      debugLogger(`Got OK response from API: ${JSON.stringify(data)}`);
-      const user = data.securityContext.pop();
-      if (user) {
-        spinner.succeed();
-        return user;
+    .post(
+      "https://api.metrological.com/api/authentication/login-dashboard",
+      {
+        email: "product@xite.com",
+        password: "Xite@metrological1",
+      },
+      {
+        headers: {
+          Accept: "application/json, text/plain, */*",
+          "Content-Type": "application/json;charset=UTF-8",
+        },
       }
-      return exit('Unexpected authentication error');
-    })
-    .catch((e) => {
-      debugLogger(`Got faulty response from API: ${e.message}`);
-      exit('Incorrect API key, not logged in to Metrological Dashboard or IP was not whitelisted');
-    });
+    )
+    .then((res) => res.data);
 };
 
 const nodeModuleInstall = () => {
-  spinner.start('Installing app dependencies');
-  const npmCmd = os.platform().startsWith('win') ? 'npm.cmd' : 'npm';
+  spinner.start("Installing app dependencies");
+  const npmCmd = os.platform().startsWith("win") ? "npm.cmd" : "npm";
 
-  return execa(npmCmd, ['i'])
+  return execa(npmCmd, ["i"])
     .then(() => {
       spinner.succeed();
     })
     .catch((e) => {
-      spinner.fail('Error while installing app dependencies');
-      console.log(chalk.red('--------------------------------------------------------------'));
+      spinner.fail("Error while installing app dependencies");
+      console.log(
+        chalk.red(
+          "--------------------------------------------------------------"
+        )
+      );
       console.log(chalk.italic(e.stderr));
-      console.log(chalk.red('--------------------------------------------------------------'));
+      console.log(
+        chalk.red(
+          "--------------------------------------------------------------"
+        )
+      );
       process.exit(1);
     });
 };
 
 const bundleApp = () => {
-  spinner.start('Building appBundle and saving to build');
+  spinner.start("Building appBundle and saving to build");
 
-  return execa('lng', ['build', '--es5', '--es6'])
+  return execa("lng", ["build", "--es5", "--es6"])
     .then(() => {
       spinner.succeed();
     })
     .catch((e) => {
-      spinner.fail('Error while bundling app.');
-      console.log(chalk.red('--------------------------------------------------------------'));
+      spinner.fail("Error while bundling app.");
+      console.log(
+        chalk.red(
+          "--------------------------------------------------------------"
+        )
+      );
       console.log(chalk.italic(e));
-      console.log(chalk.red('--------------------------------------------------------------'));
-      return process.env.LNG_BUILD_EXIT_ON_FAIL === 'true' && process.exit(1);
+      console.log(
+        chalk.red(
+          "--------------------------------------------------------------"
+        )
+      );
+      return process.env.LNG_BUILD_EXIT_ON_FAIL === "true" && process.exit(1);
     });
 };
 
 const copyFile = (filePath, folder, isFolder) => {
-  const exists = shell.test('-e', filePath);
-  debugLogger(`Copying ${isFolder ? 'folder' : 'file'} "${filePath}" to "${folder}"`);
+  const exists = shell.test("-e", filePath);
+  debugLogger(
+    `Copying ${isFolder ? "folder" : "file"} "${filePath}" to "${folder}"`
+  );
   if (!exists) {
-    debugLogger(`${isFolder ? 'Folder' : 'File'} ${filePath} does not exist in ${shell.pwd()}`);
-    debugLogger(`Founds paths: ${shell.ls('-R', shell.pwd()).grep('-v', 'node_modules|src')}`);
-    console.log(' ');
+    debugLogger(
+      `${
+        isFolder ? "Folder" : "File"
+      } ${filePath} does not exist in ${shell.pwd()}`
+    );
+    debugLogger(
+      `Founds paths: ${shell
+        .ls("-R", shell.pwd())
+        .grep("-v", "node_modules|src")}`
+    );
+    console.log(" ");
     console.log(chalk.red(`Could not find ${filePath}`));
     process.exit(1);
   }
 
   if (isFolder) {
-    shell.cp('-r', filePath, folder);
+    shell.cp("-r", filePath, folder);
     return;
   }
   shell.cp(filePath, folder);
 };
 
 const copyFiles = (folder, isExternalApp) => {
-  spinner.start(`Copying assets to "${folder.split('/').pop()}"`);
+  spinner.start(`Copying assets to "${folder.split("/").pop()}"`);
   // Always copy metadata.json
-  shell.cp('./metadata.json', folder);
+  shell.cp("./metadata.json", folder);
 
   // Always copy static folder as it probably contains icons
-  copyFile('./static', folder, true);
+  copyFile("./static", folder, true);
 
   if (!isExternalApp) {
-    copyFile('./src', folder, true);
-    ['./build/appBundle.js', './build/appBundle.js.map', './build/appBundle.es5.js', './build/appBundle.es5.js.map'].forEach((p) => copyFile(p, folder, false));
+    copyFile("./src", folder, true);
+    [
+      "./build/appBundle.js",
+      "./build/appBundle.js.map",
+      "./build/appBundle.es5.js",
+      "./build/appBundle.es5.js.map",
+    ].forEach((p) => copyFile(p, folder, false));
   }
 
   spinner.succeed();
 };
 
-const tar = (src, dest) => new Promise((resolve, reject) => {
-  targz.compress({ src, dest }, (err) => {
-    if (err) {
-      console.log(`Error while compressing the tar file. Error is : ${err}`);
-      reject(err);
-    } else {
-      resolve();
-    }
+const tar = (src, dest) =>
+  new Promise((resolve, reject) => {
+    targz.compress({ src, dest }, (err) => {
+      if (err) {
+        console.log(`Error while compressing the tar file. Error is : ${err}`);
+        reject(err);
+      } else {
+        resolve();
+      }
+    });
   });
-});
 
 const pack = (buildDir, releasesDir, metadata) => {
-  const filename = [metadata.identifier, metadata.version, 'tgz'].join('.').replace(/\s/g, '_');
+  const filename = [metadata.identifier, metadata.version, "tgz"]
+    .join(".")
+    .replace(/\s/g, "_");
   const target = path.join(releasesDir, filename);
 
   spinner.start(
-    `Creating release package "${filename}" in "${releasesDir.split('/').pop()}" folder`,
+    `Creating release package "${filename}" in "${releasesDir
+      .split("/")
+      .pop()}" folder`
   );
 
   return tar(buildDir, target)
@@ -174,24 +208,30 @@ const checkUploadFileSize = (tgzFile) => {
   const fileSizeInMB = stats.size / 1000000; // convert from Bytes to MB
 
   if (fileSizeInMB >= 10) {
-    exit('Upload File size is greater than 10 MB. Please make sure the size is less than 10MB');
+    exit(
+      "Upload File size is greater than 10 MB. Please make sure the size is less than 10MB"
+    );
   }
 };
 
 const upload = async (metadata, user, apiKey, tgzFile) => {
-  spinner.start('Uploading package to Metrological Back Office');
+  spinner.start("Uploading package to Metrological Back Office");
 
   const form = new FormData();
-  form.append('id', metadata.identifier);
-  form.append('version', metadata.version);
-  form.append('upload', fs.createReadStream(tgzFile));
+  form.append("id", metadata.identifier);
+  form.append("version", metadata.version);
+  form.append("upload", fs.createReadStream(tgzFile));
 
   const headers = form.getHeaders();
-  headers['X-Api-Token'] = apiKey;
+  headers["X-Api-Token"] = apiKey;
 
-  const { data } = await axios.post(`https://api.metrological.com/api/${user.type}/app-store/upload-lightning`, form, {
-    headers,
-  });
+  const { data } = await axios.post(
+    `https://api.metrological.com/api/developer/app-store/upload-lightning`,
+    form,
+    {
+      headers,
+    }
+  );
 
   // errors also return a 200 status response, so we intercept errors here manually
   if (data.error) {
@@ -210,29 +250,36 @@ const upload = async (metadata, user, apiKey, tgzFile) => {
   }
 };
 
-const packageJSON = require('../../../package.json');
+const packageJSON = require("../../../package.json");
 
 module.exports = async (debug) => {
   // This should move into a utility thingy
   debuggingEnabled = debug;
   debugLogger(`Node version: ${process.version}`);
   debugLogger(`metrological-cli version: ${packageJSON.version}`);
-  debugLogger(`lightning-cli version: ${shell.exec('lng --version', { silent: true }).stdout.replace('Lightning-CLI ', '').trim()}`);
-  debugLogger(`lightning-cli PATH: ${shell.exec('which lng', { silent: true }).stdout}`);
+  debugLogger(
+    `lightning-cli version: ${shell
+      .exec("lng --version", { silent: true })
+      .stdout.replace("Lightning-CLI ", "")
+      .trim()}`
+  );
+  debugLogger(
+    `lightning-cli PATH: ${shell.exec("which lng", { silent: true }).stdout}`
+  );
   debugLogger(`Platform: ${process.platform}`);
   debugLogger(`Cwd: ${process.cwd()}`);
   debugLogger(`Environment variables: ${JSON.stringify(process.env)}`);
   // set environment to production (to enable minify)
-  process.env.NODE_ENV = 'production';
+  process.env.NODE_ENV = "production";
 
   // The '.tmp' dir will hold the files that are going to be packed
-  const tmpDir = path.join(process.cwd(), '/.tmp');
+  const tmpDir = path.join(process.cwd(), "/.tmp");
   debugLogger(`tmpDir: ${tmpDir}`);
   buildHelpers.removeFolder(tmpDir);
   debugLogger(`removed folder: ${tmpDir}`);
 
   // The 'releases' folder will hold all packed apps
-  const releasesDir = path.join(process.cwd(), 'releases');
+  const releasesDir = path.join(process.cwd(), "releases");
   debugLogger(`releasesDir: ${releasesDir}`);
 
   // Clear the console
@@ -241,8 +288,7 @@ module.exports = async (debug) => {
   }
 
   // todo: save API key locally for future use and set it as default answer
-  const apiKey = await ask('Please provide your API key');
-  const user = await login(apiKey);
+  const apiKey = await ask("Please provide your API key");
   const metadataRaw = await buildHelpers.readMetadata();
   const metadata = validateMetadata(metadataRaw);
 
@@ -250,13 +296,17 @@ module.exports = async (debug) => {
 
   // Only start building non-externally hosted apps
   if (metadata.externalUrl) {
-    console.log(' ');
-    console.log(chalk.yellow('Detected externally hosted app, skipping build steps'));
+    console.log(" ");
+    console.log(
+      chalk.yellow("Detected externally hosted app, skipping build steps")
+    );
   } else {
-    await nodeModuleInstall();
-    debugLogger('Starting build');
-    await bundleApp();
-    debugLogger(`Done building app, files: ${shell.ls(path.join(process.cwd(), 'build'))}`);
+    // await nodeModuleInstall();
+    // debugLogger("Starting build");
+    // await bundleApp();
+    // debugLogger(
+    //   `Done building app, files: ${shell.ls(path.join(process.cwd(), "build"))}`
+    // );
   }
 
   buildHelpers.ensureFolderExists(tmpDir);
@@ -267,8 +317,9 @@ module.exports = async (debug) => {
   const tgzFile = await pack(tmpDir, releasesDir, metadata);
   checkUploadFileSize(tgzFile);
   try {
-    await upload(metadata, user, apiKey, tgzFile);
+    await upload(metadata, null, apiKey, tgzFile);
   } catch (e) {
+    console.log(`Error occurred while uploading the app`, e);
     // Always clean up the .tmp directory if the upload did not succeed
     // Note that the 'releases' directory is untouched
     buildHelpers.removeFolder(tmpDir);

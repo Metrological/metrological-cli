@@ -3,7 +3,7 @@
   "version": "1.2.3",
   "description": "Metrological CLI",
   "bin": {
-    "xite-upload": "./bin/index.js"
+    "xite-metro-upload": "./bin/index.js"
   },
   "engines": {
     "node": ">=15"
